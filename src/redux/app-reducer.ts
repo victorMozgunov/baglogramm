@@ -1,5 +1,4 @@
 import { AppInitialState, InferActionsTypes } from '../types/redux.types'
-import { Dispatch } from 'redux'
 import { getUserData } from './auth-reducer'
 
 const initialState:AppInitialState = {
@@ -22,8 +21,8 @@ export const appActions = {
     initialization: () => ({type: 'INITIALIZATION_SUCCESS'} as const)
 }
 
-export const initializationApp = () => (dispatch: any) => {
-    const promise = dispatch(getUserData())
+export const initializationApp = () => async (dispatch: any) => {
+    const promise = await dispatch(getUserData())
     Promise.all([promise]).then(
         dispatch(appActions.initialization())
     )

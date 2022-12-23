@@ -1,31 +1,28 @@
 import Logo from '../commons/Logo'
-import React, { Dispatch, FC, useState } from 'react'
-import { Typography, Col, Row, Image } from 'antd'
+import { Dispatch, FC } from 'react'
+import { Typography, Col, Row } from 'antd'
 import { Checkbox, Form, Input, SubmitButton } from 'formik-antd'
 import { LockOutlined, UserOutlined } from '@ant-design/icons'
 import { Formik } from 'formik'
 import { useDispatch, useSelector } from 'react-redux/es/exports'
 import { login } from '../../redux/auth-reducer'
 import { LoginFormValues } from '../../types/login.types'
-import { selectCaptchaUrl, selectErrorMessage } from '../../selectors/auth-selectors'
+import { selectErrorMessage, selectIsSubmitting } from '../../selectors/auth-selectors'
 
 const { Text } = Typography
 
 const LoginScreen: FC = () => {
-
-    const [isSubmitting, setSubmitting] = useState(false)
+    const isSubmitting = useSelector(selectIsSubmitting)
     const dispatch: Dispatch<any> = useDispatch()
     const errorMessage = useSelector(selectErrorMessage)
-    // const captchaUrl = useSelector(selectCaptchaUrl)
 
     const handleSubmit = (formData: LoginFormValues) => {
-        setSubmitting(true)
         dispatch(login(formData.email, formData.password, formData.rememberMe, formData.captcha))
-        setSubmitting(false)
     }
 
+
     return (
-        <>
+        <div style={{overflow: 'auto', height: '100vh'}}>
             <Row justify='center'>
                 <Col style={{ margin: '40px' }}>
                     <Logo />
@@ -33,7 +30,7 @@ const LoginScreen: FC = () => {
             </Row>
             <Row justify='center'>
                 <Col>
-                    <Text strong style={{ fontSize: 'calc(20px + 0.8vw)' }}>Sign in to Telegram</Text>
+                    <Text strong style={{ fontSize: 'calc(20px + 0.8vw)' }}>Sign in to Baglogram</Text>
                 </Col>
             </Row>
             <Row justify='center'>
@@ -144,7 +141,7 @@ const LoginScreen: FC = () => {
                 </Col>
             </Row>
 
-        </>
+        </div>
     )
 }
 export default LoginScreen

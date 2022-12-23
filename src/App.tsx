@@ -1,25 +1,27 @@
-import { Dispatch, FC, useEffect } from 'react'
+import { Dispatch, FC, useEffect, useMemo } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { Route, Routes } from 'react-router-dom'
-import './App.css'
-import DialogsScreen from './components/DialogsScreen/DialogsScreen'
+import './App.sass'
+import InitializationLoader from './components/commons/InitializationLoader'
+import AccountScreen from './components/AccountScreen/AccountScreen'
 import LoginScreen from './components/LoginScreen/LoginScreen'
 import { initializationApp } from './redux/app-reducer'
 import { selectIsInitialization } from './selectors/app-selectors'
 import { selectIsAuth } from './selectors/auth-selectors'
 
 const App:FC = () => {
-  const isAuth = useSelector(selectIsAuth)
   const isInitialization = useSelector(selectIsInitialization)
+  const isAuth = useSelector(selectIsAuth)
   const dispatch: Dispatch<any> = useDispatch()
 
   useEffect(() => {
     dispatch(initializationApp())
   }, [])
 
-  if (!isInitialization) return <div>dog</div>
-  if (isAuth) return <DialogsScreen />
-  return <LoginScreen />
+  if (!isInitialization) return <InitializationLoader/>
+
+  if (isAuth) return <AccountScreen/>
+
+  return <LoginScreen/>
 }
 
 export default App
