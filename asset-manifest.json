@@ -1,15 +1,15 @@
 {
   "files": {
     "main.css": "/baglogramm/static/css/main.bf183abf.css",
-    "main.js": "/baglogramm/static/js/main.ac57f817.js",
+    "main.js": "/baglogramm/static/js/main.b28ad3e7.js",
     "static/js/787.6be46371.chunk.js": "/baglogramm/static/js/787.6be46371.chunk.js",
     "index.html": "/baglogramm/index.html",
     "main.bf183abf.css.map": "/baglogramm/static/css/main.bf183abf.css.map",
-    "main.ac57f817.js.map": "/baglogramm/static/js/main.ac57f817.js.map",
+    "main.b28ad3e7.js.map": "/baglogramm/static/js/main.b28ad3e7.js.map",
     "787.6be46371.chunk.js.map": "/baglogramm/static/js/787.6be46371.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.bf183abf.css",
-    "static/js/main.ac57f817.js"
+    "static/js/main.b28ad3e7.js"
   ]
 }
