@@ -42,6 +42,3 @@ export type ProfileInitialState = {
     status: string | null
     isLoading: boolean
 }
-
-
-export type InferActionsTypes<T> = T extends { [keys: string]: (...args: any[]) => infer U } ? U : never

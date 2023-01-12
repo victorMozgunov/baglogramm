@@ -1,5 +1,5 @@
-import {AppStateType} from '../redux/store'
+import {RootState} from '../redux/store'
 
-export const selectProfile = (state: AppStateType) => state.profileScreen.profile
-export const selectStatus = (state: AppStateType) => state.profileScreen.status
-export const selectIsLoading = (state: AppStateType) => state.profileScreen.isLoading
+export const selectProfile = (state: RootState) => state.profileScreen.profile
+export const selectStatus = (state: RootState) => state.profileScreen.status
+export const selectIsLoading = (state: RootState) => state.profileScreen.isLoading

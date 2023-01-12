@@ -1,9 +1,16 @@
 import { PayloadAction } from '@reduxjs/toolkit/dist/createAction'
-import { createSlice } from '@reduxjs/toolkit/dist/createSlice'
-import { Dispatch } from 'react'
+import { createAsyncThunk, createSlice, Dispatch } from '@reduxjs/toolkit'
 import { profileAPI } from '../api/api'
 import { Photos } from '../types/api.types'
-import { InferActionsTypes, Profile, ProfileInitialState } from '../types/redux.types'
+import { Profile, ProfileInitialState } from '../types/redux.types'
+import { RootState } from './store'
+
+export const createAppAsyncThunk = createAsyncThunk.withTypes<{
+    state: RootState
+    dispatch: Dispatch<any>
+    rejectValue: string
+    extra: { s: string; n: number }
+}>()
 
 const initialState: ProfileInitialState = {
     profile: {
@@ -31,71 +38,72 @@ const initialState: ProfileInitialState = {
     isLoading: false
 }
 
-
-
-const profileReducer = (state = initialState, action: Action): ProfileInitialState => {
-    switch (action.type) {
-        case 'SET_PROFILE':
-            return {
-                ...state,
-                profile: action.profile
-            }
-        case 'SET_STATUS':
-            return {
-                ...state,
-                status: action.status
-            }
-        case 'SET_PHOTO':
-            return {
-                ...state,
-                profile: { ...state.profile, photos: action.photo } as Profile
-            }
-        case 'SET_LOADING':
-            return {
-                ...state,
-                isLoading: action.isLoading
-            }
-        default:
-            return state
+const profileSlice = createSlice({
+    name: 'profile',
+    initialState,
+    reducers: {
+        setProfile: (state, action: PayloadAction<Profile>) => ({ ...state, profile: action.payload }),
+        setStatus: (state, action: PayloadAction<string | null>) => ({ ...state, status: action.payload }),
+        setPhoto: (state, action: PayloadAction<Photos>) => ({
+            ...state,
+            profile: { ...state.profile, photos: action.payload }
+        }),
+        setLoading: (state, action: PayloadAction<boolean>) => ({ ...state, isLoading: action.payload })
+    },
+    extraReducers: builder => {
+        builder
+            .addCase(getProfileAndStatus.fulfilled, (state) => ({ ...state, isLoading: false }))
     }
-}
+})
 
-export const profileActions = {
-    setProfile: (profile: Profile) => ({ type: 'SET_PROFILE', profile } as const),
-    setStatus: (status: string | null) => ({ type: 'SET_STATUS', status } as const),
-    setPhoto: (photo: Photos) => ({ type: 'SET_PHOTO', photo } as const),
-    setLoading: (isLoading: boolean) => ({type: 'SET_LOADING', isLoading} as const)
-}
+export const getProfileAndStatus = createAppAsyncThunk(
+    'profile/getProfileAndStatus',
+    async (userId: number | null, thunkAPI) => {
+        thunkAPI.dispatch(setLoading(true))
+        const profile = await profileAPI.getProfile(userId)
+        thunkAPI.dispatch(setProfile(profile))
+        const status = await profileAPI.getStatus(userId)
+        thunkAPI.dispatch(setStatus(status))
+    }
+)
+export const getProfile = createAppAsyncThunk(
+    'profile/getProfile',
+    async (userId: number | null, thunkAPI) => {
+        const data = await profileAPI.getProfile(userId)
+        thunkAPI.dispatch(setProfile(data))
+    }
+)
+export const getStatus = createAppAsyncThunk(
+    'profile/getStatus',
+    async (userId: number | null, thunkAPI) => {
+        const data = await profileAPI.getStatus(userId)
+        thunkAPI.dispatch(setStatus(data))
+    }
+)
+export const updateStatus = createAppAsyncThunk(
+    'profile/updateStatus',
+    async (status: string | null, thunkAPI) => {
+        const data = await profileAPI.updateStatus(status)
+        if (data.resultCode === 0) thunkAPI.dispatch(setStatus(status))
+    }
+)
+export const updateProfile = createAppAsyncThunk(
+    'profile/updateProfile',
+    async (profile: Profile, thunkAPI) => {
+        const data = await profileAPI.updateProfile(profile)
+        if (data.resultCode === 0) thunkAPI.dispatch(setProfile(profile))
+    }
+)
+export const updatePhoto = createAppAsyncThunk(
+    'profile/updatePhoto',
+    async (photoFile: File, thunkAPI) => {
+        const data = await profileAPI.updatePhoto(photoFile)
+        if (data.resultCode === 0) thunkAPI.dispatch(setPhoto(data.data))
+    }
+)
 
-export const getProfileAndStatus = (userId: number | null) => async (dispatch: any) => {
-    dispatch(profileActions.setLoading(true))
-    const profile = await dispatch(getProfile(userId))
-    const status = await dispatch(getStatus(userId))
-    Promise.all([profile, status]).then(
-        dispatch(profileActions.setLoading(false))
-    )
-}
-export const getProfile = (userId: number | null) => async (dispatch: Dispatch<Action>) => {
-    const data = await profileAPI.getProfile(userId)
-    dispatch(profileActions.setProfile(data))
-}
-export const getStatus = (userId: number | null) => async (dispatch: Dispatch<Action>) => {
-    const data = await profileAPI.getStatus(userId)
-    dispatch(profileActions.setStatus(data))
-}
-export const updateStatus = (status: string | null) => async (dispatch: Dispatch<Action>) => {
-    const data = await profileAPI.updateStatus(status)
-    if (data.resultCode === 0) dispatch(profileActions.setStatus(status))
-}
-export const updateProfile = (profile: Profile) => async (dispatch: Dispatch<Action>) => {
-    const data = await profileAPI.updateProfile(profile)
-    if (data.resultCode === 0) dispatch(profileActions.setProfile(profile))
-}
-export const updatePhoto = (photoFile: File) => async (dispatch: Dispatch<Action>) => {
-    const data = await profileAPI.updatePhoto(photoFile)
-    if (data.resultCode === 0) dispatch(profileActions.setPhoto(data.data))
-}
+const { actions, reducer } = profileSlice
 
-export default profileReducer
+const { setProfile, setStatus, setPhoto, setLoading } = actions
 
-type Action = InferActionsTypes<typeof profileActions>
+export default reducer

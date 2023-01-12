@@ -1,12 +1,13 @@
-import { UserOutlined } from '@ant-design/icons'
-import { Col, Row, Typography, Button, Skeleton } from 'antd'
+import { ArrowLeftOutlined, EditOutlined, UserOutlined } from '@ant-design/icons'
+import { Col, Row, Typography, Button } from 'antd'
 import { Content } from 'antd/es/layout/layout'
 import { Formik } from 'formik'
 import { Form, Input, SubmitButton } from 'formik-antd'
 import { Dispatch, FC, useEffect, useState } from 'react'
-import { useDispatch, useSelector } from 'react-redux'
+import { useDispatch } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
-import { Link, Params, useParams } from 'react-router-dom'
+import { Params, useParams } from 'react-router-dom'
+import { useAppSelector } from '../../../hooks/hooks'
 import { getProfileAndStatus, updateProfile, updateStatus } from '../../../redux/profile-reducer'
 import { selectId } from '../../../selectors/auth-selectors'
 import { selectIsLoading, selectProfile, selectStatus } from '../../../selectors/profile-selector'
@@ -17,10 +18,11 @@ const { Paragraph, Text } = Typography
 
 const ProfileScreen: FC<{ params: Readonly<Params<string>> }> = (props) => {
     const dispatch: Dispatch<any> = useDispatch()
-    const profile = useSelector(selectProfile)
-    const status = useSelector(selectStatus)
-    const userId = useSelector(selectId)
-    const isLoading = useSelector(selectIsLoading)
+
+    const profile = useAppSelector(selectProfile)
+    const status = useAppSelector(selectStatus)
+    const userId = useAppSelector(selectId)
+    const isLoading = useAppSelector(selectIsLoading)
 
     const [isEditMode, setIsEditMode] = useState(false)
 
@@ -32,38 +34,59 @@ const ProfileScreen: FC<{ params: Readonly<Params<string>> }> = (props) => {
         }
     }, [props.params.userId])
 
-    return <Content
-        style={{
-            margin: '0',
-            overflow: 'scroll',
-            overflowX: 'hidden',
-            height: '100vh',
-            backgroundColor: '#000',
-            paddingTop: 20,
-            paddingBottom: 20
-        }}
-    >
-        {isLoading
-            ? <Row justify='center'>
-                <Col>
-                    <ProfileLoader />
-                </Col>
-            </Row>
-            : isEditMode
-                ? <EditProfile
-                    profile={profile}
-                    status={status}
-                    setIsEditMode={setIsEditMode}
-                />
-                : <ProfileUser
-                    profile={profile}
-                    status={status}
-                    userId={props.params.userId}
-                    setIsEditMode={setIsEditMode}
-                />
-        }
+    return <>
+        <Row
+            align='middle'
+            justify='start'
+            style={{
+                minHeight: 50,
+                background: '#212121',
+                padding: 0,
 
-    </Content>
+            }}
+        >
+            <Col
+                style={{
+                    marginLeft: 20
+                }}
+            >
+                <Text ellipsis={true} style={{ color: 'white', fontSize: 25 }}>Profile</Text>
+            </Col>
+
+        </Row>
+        <Content
+            style={{
+                margin: '0',
+                overflow: 'scroll',
+                overflowX: 'hidden',
+                height: '100vh',
+                backgroundColor: '#000',
+                paddingTop: 20,
+                paddingBottom: 30
+            }}
+        >
+            {isLoading
+                ? <Row justify='center'>
+                    <Col>
+                        <ProfileLoader />
+                    </Col>
+                </Row>
+                : isEditMode
+                    ? <EditProfile
+                        profile={profile}
+                        status={status}
+                        setIsEditMode={setIsEditMode}
+                    />
+                    : <ProfileUser
+                        profile={profile}
+                        status={status}
+                        userId={props.params.userId}
+                        setIsEditMode={setIsEditMode}
+                    />
+            }
+
+        </Content>
+    </>
 }
 
 const ProfileUser: FC<ProfileUserProps> = (props) => {
@@ -106,7 +129,7 @@ const ProfileUser: FC<ProfileUserProps> = (props) => {
                     <Col>
                         <Text
                             style={{
-                                color: '#a5a5a5',
+                                color: '#aaaaaa',
                                 marginTop: 0,
                             }}
                         >
@@ -136,7 +159,7 @@ const ProfileUser: FC<ProfileUserProps> = (props) => {
                         <div style={{ marginBottom: 20 }}>
                             <Text
                                 style={{
-                                    color: '#a5a5a5',
+                                    color: '#aaaaaa',
                                     marginTop: 0,
                                 }}
                             >
@@ -151,28 +174,44 @@ const ProfileUser: FC<ProfileUserProps> = (props) => {
             ?
             <Row justify='center'>
                 <Col>
-                    <Button
-                        type="primary"
-                        style={{ backgroundColor: '#212121', marginTop: 20 }}
+                    <Row
+                        align='middle'
+                        justify='center'
+                        style={{
+                            marginTop: 20,
+                            height: 50,
+                            width: 50,
+                            backgroundColor: '#212121',
+                            borderRadius: 75,
+                            cursor: 'pointer',
+                        }}
                         onClick={() => navigate(-1)}
                     >
 
-                        Back
-                    </Button>
+                        <ArrowLeftOutlined style={{ fontSize: 30, color: '#aaaaaa' }} />
+                    </Row>
 
                 </Col>
             </Row>
             :
             <Row justify='center'>
                 <Col>
-                    <Button
-                        type="primary"
-                        style={{ backgroundColor: '#212121', marginTop: 20 }}
+                    <Row
+                        align='middle'
+                        justify='center'
+                        style={{
+                            marginTop: 20,
+                            height: 50,
+                            width: 50,
+                            backgroundColor: '#212121',
+                            borderRadius: 75,
+                            cursor: 'pointer',
+                        }}
                         onClick={() => { props.setIsEditMode(true) }}
                     >
 
-                        Edit profile
-                    </Button>
+                        <EditOutlined style={{ fontSize: 30, color: '#aaaaaa' }} />
+                    </Row>
                 </Col>
             </Row>
         }
@@ -293,11 +332,18 @@ const EditProfile: FC<EditProfileProps> = (props) => {
                     <Form.Item name='button'>
                         <SubmitButton
                             name='button'
-                            type="primary"
-                            style={{ backgroundColor: '#212121', marginTop: 20 }}
+                            
+                            style={{
+                                backgroundColor: '#212121',
+                                marginTop: 20,
+                                height: 50,
+                                width: 50,
+                                borderRadius: 75,
+                                padding: 0,
+                                borderColor: '#212121'
+                            }}
                         >
-
-                            Save
+                            <ArrowLeftOutlined style={{ fontSize: 30, color: '#aaaaaa'  }} />
                         </SubmitButton>
                     </Form.Item>
                 </Col>

@@ -1,12 +1,10 @@
-import { applyMiddleware } from 'redux'
-import thunkMiddleware from 'redux-thunk'
 import appReducer from './app-reducer'
 import authReducer from './auth-reducer'
 import profileReducer from './profile-reducer'
 import usersReducer from './users-reducer'
 import { configureStore } from '@reduxjs/toolkit'
 
-export type AppStateType = ReturnType<typeof store.getState>
+export type RootState = ReturnType<typeof store.getState>
 export type AppDispatch = typeof store.dispatch
 
 const store = configureStore({
@@ -17,6 +15,5 @@ const store = configureStore({
         profileScreen: profileReducer
     }
 })
-
 
 export default store

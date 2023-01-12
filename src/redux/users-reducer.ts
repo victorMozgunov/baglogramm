@@ -1,6 +1,14 @@
-import { Dispatch } from 'react'
+import { createAsyncThunk, createSlice, Dispatch, PayloadAction } from '@reduxjs/toolkit'
 import { usersAPI } from '../api/api'
-import { InferActionsTypes, Users, UsersInitialState } from '../types/redux.types'
+import { Users, UsersInitialState } from '../types/redux.types'
+import { RootState } from './store'
+
+export const createAppAsyncThunk = createAsyncThunk.withTypes<{
+    state: RootState
+    dispatch: Dispatch<any>
+    rejectValue: string
+    extra: { s: string; n: number }
+}>()
 
 const initialState: UsersInitialState = {
     users: [],
@@ -9,101 +17,100 @@ const initialState: UsersInitialState = {
     isSubmitting: false
 }
 
-const usersReducer = (state = initialState, action: Action): UsersInitialState => {
-    switch (action.type) {
-        case 'SET_USERS':
-            return {
+const usersSlice = createSlice({
+    name: 'users',
+    initialState,
+    reducers: {
+        setUsers: (state, action: PayloadAction<Users>) => ({
+            ...state,
+            users: [...state.users, ...action.payload]
+        }),
+        setTotalCount: (state, action: PayloadAction<number>) => ({
+            ...state,
+            totalCount: action.payload
+        }),
+        setFollow: (state, action: PayloadAction<number>) => ({
+            ...state,
+            users: state.users.map(el => {
+                if (el.id === action.payload) {
+                    return { ...el, followed: true }
+                }
+                return el
+            })
+        }),
+        setUnfollow: (state, action: PayloadAction<number>) => ({
+            ...state,
+            users: state.users.map(el => {
+                if (el.id === action.payload) return { ...el, followed: false }
+                return el
+            })
+        }),
+        followingAdd: (state, action: PayloadAction<number>) => ({
+            ...state,
+            following: [...state.following, action.payload]
+        }),
+        followingDelete: (state, action: PayloadAction<number>) => ({
+            ...state,
+            following: state.following.filter(id => id != action.payload)
+        }),
+        setSubmitting: (state) => ({
+            ...state,
+            isSubmitting: !state.isSubmitting
+        }),
+        setNullUsers: (state) => ({
+            ...state,
+            users: [],
+            totalCount: 0
+        }),
+    },
+    extraReducers: builder => {
+        builder
+            .addCase(setDeleteFriend.fulfilled, (state, action: PayloadAction<number>) => ({
                 ...state,
-                users: [...state.users, ...action.users]
-            }
-        case 'SET_TOTAL_COUNT':
-            return {
-                ...state,
-                totalCount: action.totalCount
-            }
-        case 'FOLLOW': 
-            return {
-                ...state,
-                users: state.users.map(el => {
-                    if (el.id === action.userId) {
-                        return { ...el, followed: true }
-                    }
-                    return el
-                })
-            }
-        case 'UNFOLLOW': 
-            return {
-                ...state,
-                users: state.users.map(el => {
-                    if (el.id === action.userId) return {...el, followed: false}
-                    return el
-                })
-            }
-        case 'FOLLOWING_ADD':
-            return {
-                ...state,
-                following: [...state.following, action.userId]
-            }
-        case 'FOLLOWING_DELETE':
-            return {
-                ...state,
-                following: state.following.filter(id => id != action.userId)
-            }
-        case 'SET_SUBMITTING':
-            return {
-                ...state,
-                isSubmitting: !state.isSubmitting
-            }
-        case 'NULL_USERS':
-            return {
-                ...state,
-                users: [],
-                totalCount: 0
-            }
-        default:
-            return state
+                users: state.users.filter(el => el.id !== action.payload)
+            }))
     }
-}
+})
 
-export const usersActions = {
-    setUsers: (users: Users) => ({ type: 'SET_USERS', users } as const),
-    setTotalCount: (totalCount: number) => ({ type: 'SET_TOTAL_COUNT', totalCount } as const),
-    followSuccess: (userId: number) => ({ type: 'FOLLOW', userId } as const),
-    unfollowSuccess: (userId: number) => ({type: 'UNFOLLOW', userId} as const),
-    followingAdd: (userId: number) => ({type: 'FOLLOWING_ADD', userId} as const),
-    followingDelete: (userId: number) => ({type: 'FOLLOWING_DELETE', userId} as const),
-    setSubmitting: () => ({type: 'SET_SUBMITTING'} as const),
-    nullUsers: () => ({type: 'NULL_USERS'} as const)
-}
+export const requestUsers = createAppAsyncThunk(
+    'users/requestFriends',
+    async (payload: { page: number, pageSize: number, friends: boolean | null }, thunkAPI) => {
+        thunkAPI.dispatch(setSubmitting())
+        const data = await usersAPI.users(payload.page, payload.pageSize, '', payload.friends)
+        thunkAPI.dispatch(setUsers(data.items))
+        thunkAPI.dispatch(setTotalCount(data.totalCount))
+        thunkAPI.dispatch(setSubmitting())
+    }
+)
+export const follow = createAppAsyncThunk(
+    'users/follow',
+    async (userId: number, thunkAPI) => {
+        thunkAPI.dispatch(followingAdd(userId))
+        const data = await usersAPI.follow(userId)
+        if (data.resultCode === 0) thunkAPI.dispatch(setFollow(userId))
+        thunkAPI.dispatch(followingDelete(userId))
+    }
+)
+export const unfollow = createAppAsyncThunk(
+    'users/unfollow',
+    async (userId: number, thunkAPI) => {
+        thunkAPI.dispatch(followingAdd(userId))
+        const data = await usersAPI.unfollow(userId)
+        if (data.resultCode === 0) thunkAPI.dispatch(setUnfollow(userId))
+        thunkAPI.dispatch(followingDelete(userId))
+    }
+)
+export const setDeleteFriend = createAppAsyncThunk(
+    'users/setDeleteFriend',
+    async (userId: number, thunkAPI) => {
+        thunkAPI.dispatch(unfollow(userId))
+        return userId
+    }
+)
 
-export const requestFriends = (page: number, pageSize: number) => 
-    async (dispatch:  Dispatch<Action>) => {
-        dispatch(usersActions.setSubmitting())
-        const data = await usersAPI.users(page, pageSize, '', true)
-        dispatch(usersActions.setUsers(data.items))
-        dispatch(usersActions.setTotalCount(data.totalCount))
-        dispatch(usersActions.setSubmitting())
-}
-export const requestUsers = (page: number, pageSize: number) => async (dispatch:  Dispatch<Action>) => {
-    dispatch(usersActions.setSubmitting())
-    const data = await usersAPI.users(page, pageSize)
-    dispatch(usersActions.setUsers(data.items))
-    dispatch(usersActions.setTotalCount(data.totalCount))
-    dispatch(usersActions.setSubmitting())
-}
-export const follow = (userId: number) => async (dispatch: Dispatch<Action>) => {
-    dispatch(usersActions.followingAdd(userId))
-    const data = await usersAPI.follow(userId)
-    if (data.resultCode === 0) dispatch(usersActions.followSuccess(userId))
-    dispatch(usersActions.followingDelete(userId))
-}
-export const unfollow = (userId: number) => async (dispatch:  Dispatch<Action>) => {
-    dispatch(usersActions.followingAdd(userId))
-    const data = await usersAPI.unfollow(userId)
-    if (data.resultCode === 0) dispatch(usersActions.unfollowSuccess(userId))
-    dispatch(usersActions.followingDelete(userId))
-}
+const { actions, reducer } = usersSlice
 
-export default usersReducer
+export const { setUsers, setSubmitting, setTotalCount, followingAdd,
+    followingDelete, setFollow, setUnfollow, setNullUsers } = actions
 
-type Action = InferActionsTypes<typeof usersActions>
+export default reducer

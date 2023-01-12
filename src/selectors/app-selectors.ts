@@ -1,3 +1,3 @@
-import { AppStateType } from '../redux/store'
+import { RootState } from '../redux/store'
 
-export const selectIsInitialization = (state: AppStateType) => state.appScreen.isInitialization
+export const selectIsInitialization = (state: RootState) => state.appScreen.isInitialization

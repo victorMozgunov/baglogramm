@@ -1,6 +1,15 @@
-import { AuthInitialState, InferActionsTypes } from '../types/redux.types'
+import { AuthInitialState } from '../types/redux.types'
 import { authAPI, captchaAPI } from '../api/api'
-import { Dispatch } from 'redux'
+import { createAsyncThunk, createSlice, Dispatch } from '@reduxjs/toolkit'
+import { PayloadAction } from '@reduxjs/toolkit/dist/createAction'
+import { RootState } from './store'
+
+export const createAppAsyncThunk = createAsyncThunk.withTypes<{
+    state: RootState
+    dispatch: Dispatch<any>
+    rejectValue: string
+    extra: { s: string; n: number }
+}>()
 
 const initialState: AuthInitialState = {
     id: null,
@@ -12,70 +21,83 @@ const initialState: AuthInitialState = {
     isSubmitting: false
 }
 
-const authReducer = (state = initialState, action: Action): AuthInitialState => {
-    switch (action.type) {
-        case 'SET_USER_DATA':
-            return {
+const authSlice = createSlice({
+    name: 'auth',
+    initialState,
+    reducers: {
+        setUserData: (state, action: PayloadAction<{
+            id: number | null, email: string | null, login: string | null, isAuth: boolean
+        }>) => ({
+            ...state,
+            id: action.payload.id,
+            email: action.payload.email,
+            login: action.payload.login,
+            isAuth: action.payload.isAuth
+        }),
+        setErrorMessage: (state, action: PayloadAction<string>) => ({
+            ...state,
+            errorMessage: action.payload
+        }),
+        setSubmitting: (state) => ({
+            ...state,
+            isSubmitting: !state.isSubmitting
+        })
+    },
+    extraReducers: builder => {
+        builder
+            .addCase(getCaptchaUrl.fulfilled, (state, action: PayloadAction<string>) => ({
                 ...state,
-                ...action.data
-            }
-        case 'SET_CAPTCHA_URL':
-            return {
-                ...state,
-                captchaUrl: action.captchaUrl
-            }
-        case 'SET_ERROR_MESSAGE':
-            return {
-                ...state,
-                errorMessage: action.errorMessage
-            }
-        case 'SET_SUBMITTING':
-            return {
-                ...state,
-                isSubmitting: !state.isSubmitting
-            }
-        default:
-            return state
+                captchaUrl: action.payload
+            }))
     }
-}
+})
 
-export const authActions = {
-    setUserData: (id: number | null, email: string | null, login: string | null, isAuth: boolean) =>
-        ({ type: 'SET_USER_DATA', data: { id, email, login, isAuth } } as const),
-    setCaptchaUrl: (captchaUrl: string) => ({ type: 'SET_CAPTCHA_URL', captchaUrl } as const),
-    setErrorMessage: (errorMessage: string) => ({ type: 'SET_ERROR_MESSAGE', errorMessage } as const),
-    setSubmitting: () => ({ type: 'SET_SUBMITTING' } as const)
-}
-
-export const getCaptchaUrl = () => async (dispatch: any) => {
-    const data = await captchaAPI.getCaptcha()
-    const captchaUrl = data.url
-    dispatch(authActions.setCaptchaUrl(captchaUrl))
-}
-export const getUserData = () => async (dispatch: Dispatch<Action>) => {
-    const meData = await authAPI.me()
-    if (meData.resultCode === 0) {
-        const { id, email, login } = meData.data
-        dispatch(authActions.setUserData(id, email, login, true))
+export const getCaptchaUrl = createAppAsyncThunk(
+    'auth/getCaptchaUrl',
+    async () => {
+        const data = await captchaAPI.getCaptcha()
+        const captchaUrl = data.url
+        return captchaUrl
     }
-}
-export const login = (email: string, password: string, rememberMe: boolean, captcha: string | null) =>
-    async (dispatch: any) => {
-        dispatch(authActions.setSubmitting())
-        const data = await authAPI.login(email, password, rememberMe, captcha)
-        if (data.resultCode === 0) dispatch(getUserData())
-        else {
-            if (data.resultCode === 10) dispatch(getCaptchaUrl())
-            const message = data.messages.length > 0 ? data.messages[0] : "Error"
-            dispatch(authActions.setErrorMessage(message))
+)
+export const getUserData = createAppAsyncThunk(
+    'auth/getUserData',
+    async (_, thunkAPI) => {
+        const meData = await authAPI.me()
+        if (meData.resultCode === 0) {
+            const { id, email, login } = meData.data
+            thunkAPI.dispatch(setUserData({ id, email, login, isAuth: true }))
         }
-        dispatch(authActions.setSubmitting())
-}
-export const logout = () => async (dispatch: Dispatch<Action>) => {
-    const data = await authAPI.logout()
-    if (data.resultCode === 0) dispatch(authActions.setUserData(null, null, null, false))
-}
+    }
+)
+export const logout = createAppAsyncThunk(
+    'auth/logout',
+    async (_, thunkAPI) => {
+        const data = await authAPI.logout()
+        if (data.resultCode === 0) thunkAPI.dispatch(setUserData({
+            id: null, email: null, login: null, isAuth: false
+        }))
+    }
+)
+export const login = createAppAsyncThunk(
+    'auth/login',
+    async (payload: { email: string, password: string, rememberMe: boolean, captcha: string | null }, thunkAPI) => {
+        thunkAPI.dispatch(setSubmitting())
+        const { email, password, rememberMe, captcha } = payload
+        const data = await authAPI.login(email, password, rememberMe, captcha)
+        if (data.resultCode === 0) thunkAPI.dispatch(getUserData())
+        else {
+            if (data.resultCode === 10) thunkAPI.dispatch(getCaptchaUrl())
+            const message = data.messages.length > 0 ? data.messages[0] : "Error"
+            thunkAPI.dispatch(setErrorMessage(message))
+        }
+        thunkAPI.dispatch(setSubmitting())
+    }
+)
 
-export default authReducer
+const { actions, reducer } = authSlice
 
-type Action = InferActionsTypes<typeof authActions>
+export const { setUserData, setErrorMessage, setSubmitting } = actions
+
+export default reducer
+

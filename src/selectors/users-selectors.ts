@@ -1,6 +1,6 @@
-import {AppStateType} from '../redux/store'
+import {RootState} from '../redux/store'
 
-export const selectUsers= (state: AppStateType) => state.usersScreen.users
-export const selectFollowing = (state: AppStateType) => state.usersScreen.following
-export const selectIsSubmitting = (state: AppStateType) => state.usersScreen.isSubmitting
-export const selectTotalCount = (state: AppStateType) => state.usersScreen.totalCount
+export const selectUsers= (state: RootState) => state.usersScreen.users
+export const selectFollowing = (state: RootState) => state.usersScreen.following
+export const selectIsSubmitting = (state: RootState) => state.usersScreen.isSubmitting
+export const selectTotalCount = (state: RootState) => state.usersScreen.totalCount

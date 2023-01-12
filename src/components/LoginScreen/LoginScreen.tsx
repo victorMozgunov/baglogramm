@@ -1,23 +1,28 @@
 import Logo from '../commons/Logo'
-import { Dispatch, FC } from 'react'
+import { FC } from 'react'
 import { Typography, Col, Row } from 'antd'
 import { Checkbox, Form, Input, SubmitButton } from 'formik-antd'
 import { LockOutlined, UserOutlined } from '@ant-design/icons'
 import { Formik } from 'formik'
-import { useDispatch, useSelector } from 'react-redux/es/exports'
 import { login } from '../../redux/auth-reducer'
 import { LoginFormValues } from '../../types/login.types'
 import { selectErrorMessage, selectIsSubmitting } from '../../selectors/auth-selectors'
+import { useAppDispatch, useAppSelector } from '../../hooks/hooks'
 
 const { Text } = Typography
 
 const LoginScreen: FC = () => {
-    const isSubmitting = useSelector(selectIsSubmitting)
-    const dispatch: Dispatch<any> = useDispatch()
-    const errorMessage = useSelector(selectErrorMessage)
+    const isSubmitting = useAppSelector(selectIsSubmitting)
+    const dispatch = useAppDispatch()
+    const errorMessage = useAppSelector(selectErrorMessage)
 
     const handleSubmit = (formData: LoginFormValues) => {
-        dispatch(login(formData.email, formData.password, formData.rememberMe, formData.captcha))
+        dispatch(login({
+            email: formData.email, 
+            password: formData.password, 
+            rememberMe: formData.rememberMe, 
+            captcha: formData.captcha
+        }))
     }
 
 
