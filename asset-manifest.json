@@ -1,0 +1,15 @@
+{
+  "files": {
+    "main.css": "/victorMozgunov/baglogramm/static/css/main.bf183abf.css",
+    "main.js": "/victorMozgunov/baglogramm/static/js/main.436c252c.js",
+    "static/js/787.6be46371.chunk.js": "/victorMozgunov/baglogramm/static/js/787.6be46371.chunk.js",
+    "index.html": "/victorMozgunov/baglogramm/index.html",
+    "main.bf183abf.css.map": "/victorMozgunov/baglogramm/static/css/main.bf183abf.css.map",
+    "main.436c252c.js.map": "/victorMozgunov/baglogramm/static/js/main.436c252c.js.map",
+    "787.6be46371.chunk.js.map": "/victorMozgunov/baglogramm/static/js/787.6be46371.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.bf183abf.css",
+    "static/js/main.436c252c.js"
+  ]
+}
