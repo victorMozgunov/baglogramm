@@ -97,7 +97,7 @@ const ProfileUser: FC<ProfileUserProps> = (props) => {
                 <Row justify='center'>
                     <Col style={{ margin: 20 }}>
                         <img
-                            src={props.profile?.photos.large ? props.profile.photos.large : 'http://localhost:3000/img/user.png'}
+                            src={props.profile?.photos.large ? props.profile.photos.large : 'https://victormozgunov.github.io/baglogramm/img/user.png'}
                             style={{
                                 borderRadius: 200,
                                 width: '20vw',
@@ -251,7 +251,7 @@ const EditProfile: FC<EditProfileProps> = (props) => {
                             <img
                                 src={props.profile?.photos.large
                                     ? props.profile.photos.large
-                                    : 'http://localhost:3000/img/user.png'
+                                    : 'https://victormozgunov.github.io/baglogramm/img/user.png'
                                 }
                                 style={{
                                     borderRadius: 200,

@@ -128,7 +128,7 @@ const Users: FC = () => {
                     <Row align='middle' justify='center'>
                         <Link to={'/profile/' + el.id}>
                             <img
-                                src={el.photos.large ? el.photos.large : 'http://localhost:3000/img/user.png'}
+                                src={el.photos.large ? el.photos.large : 'https://victormozgunov.github.io/baglogramm/img/user.png'}
                                 width='50'
                                 height='50'
                                 style={{ borderRadius: 200 }}
